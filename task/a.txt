@@ -1,0 +1,40 @@
+
+
+class CheckMac(generics.ListAPIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    serializer_class = MacSerializer
+
+    def get_queryset(self):
+
+        if self.request.user.subscriptionPlan == 'Basic':
+            if self.request.user.requestCounter <= 50:
+                self.request.user.requestCounter += 1
+                print(self.request.user.requestCounter)
+                self.request.user.save()
+                queryset = Mac.objects.all()
+                mac = self.request.query_params.get('mac', None)
+                if mac is not None:
+                    queryset = queryset.filter(mac__icontains=mac)
+                return queryset
+            else:
+                return HttpResponse('you need to upgrade')
+
+        elif self.request.user.subscriptionPlan == 'Business':
+            if self.request.user.requestCounter <= 150:
+                self.request.user.requestCounter += 1
+                queryset = Mac.objects.all()
+                mac = self.request.query_params.get('mac', None)
+                if mac is not None:
+                    queryset = queryset.filter(mac__icontains=mac)
+                return queryset
+
+            else:
+                return HttpResponse('you need to upgrade')
+
+        elif self.request.user.subscriptionPlan == 'Agency':
+            if self.request.user.requestCounter <= 500:
+                ++self.request.user.requestCounter
+                # self.get()
+        else:
+            return HttpResponse('you need to choice a new plan ')
